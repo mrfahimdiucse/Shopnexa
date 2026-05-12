@@ -57,8 +57,12 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", async () => {
-    console.log(`🚀 Shopnexa server running on http://localhost:${PORT}`);
+ // নিশ্চিত করুন PORT ভেরিয়েবলটি এভাবে আছে
+const PORT = process.env.PORT || 10000; 
+
+app.listen(PORT, "0.0.0.0", async () => {
+    // এখানে localhost এর বদলে port প্রিন্ট করা ভালো কারণ প্রোডাকশনে এটি localhost নয়
+    console.log(`🚀 Shopnexa server running on port ${PORT}`);
     
     // Sync DB and seed demo data AFTER listening
     try {
@@ -68,7 +72,7 @@ async function startServer() {
     } catch (err) {
       console.error("❌ Seeding failed:", err);
     }
-  });
+});
 }
 
 startServer();

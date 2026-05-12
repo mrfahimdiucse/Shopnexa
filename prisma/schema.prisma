@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  INVESTOR
+  VENDOR
+  ADMIN
+}
+
+enum TransactionType {
+  DEPOSIT
+  INVEST
+  WITHDRAW
+  SYSTEM_CREDIT
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REJECTED
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  MATURED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role
+  status        UserStatus     @default(ACTIVE)
+  walletBalance Decimal        @default(0) @db.Decimal(12, 2)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  plans         InvestmentPlan[] @relation("VendorPlans")
+  investments   Investment[]
+  transactions  Transaction[]
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model InvestmentPlan {
+  id               String       @id @default(cuid())
+  title            String
+  minAmount        Decimal      @db.Decimal(12, 2)
+  profitPercentage Decimal      @db.Decimal(12, 2)
+  duration         Int          // In days
+  vendorId         String
+  vendor           User         @relation("VendorPlans", fields: [vendorId], references: [id])
+  investments      Investment[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  imageUrl         String?
+}
+
+model Investment {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  planId      String
+  plan        InvestmentPlan @relation(fields: [planId], references: [id])
+  amount      Decimal        @db.Decimal(12, 2)
+  startDate   DateTime       @default(now())
+  endDate     DateTime
+  status      InvestmentStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+}
+
+model Transaction {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id])
+  amount    Decimal           @db.Decimal(12, 2)
+  type      TransactionType
+  method    String            // bKash, Nagad
+  trxID     String            @unique
+  status    TransactionStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+}

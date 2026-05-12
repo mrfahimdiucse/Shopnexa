@@ -16,7 +16,7 @@ export default function Navbar() {
     if (user) {
       const fetchBalance = async () => {
         try {
-          const response = await axios.get('/api/auth/me');
+          const response = await axios.get('/auth/me', { withCredentials: true });
           setBalance(response.data.walletBalance || 0);
         } catch (error) {
           console.error('Failed to fetch balance:', error);

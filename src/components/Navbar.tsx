@@ -1,14 +1,32 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../App";
 import { LogOut, LayoutDashboard, User, Shield, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { formatCurrency } from "../lib/utils";
+import axios from "axios";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      const fetchBalance = async () => {
+        try {
+          const response = await axios.get('/api/auth/me');
+          setBalance(response.data.walletBalance || 0);
+        } catch (error) {
+          console.error('Failed to fetch balance:', error);
+          // Fallback to user balance from context if fetch fails
+          setBalance(user.walletBalance || 0);
+        }
+      };
+      fetchBalance();
+    }
+  }, [user]);
 
   const isLanding = location.pathname === "/";
 
@@ -62,7 +80,7 @@ export default function Navbar() {
             </Link>
             <div className="flex items-center gap-4 pl-6 border-l border-white/10">
               <div className="text-right">
-                <p className="text-brand font-black font-mono text-sm leading-none italic tracking-tighter">{formatCurrency(user.walletBalance)}</p>
+                  <p className="text-brand font-black font-mono text-sm leading-none italic tracking-tighter">{formatCurrency(balance)}</p>
               </div>
               <button 
                 onClick={logout}

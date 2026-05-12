@@ -262,7 +262,7 @@ export default function VendorDashboard() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#050505] border border-white/10 p-10 rounded-2xl w-full max-w-md relative shadow-2xl"
+              className="bg-[#050505] border border-white/10 p-10 rounded-2xl w-full max-w-md relative shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20"
             >
               <button onClick={() => setShowCreate(false)} className="absolute right-6 top-6 text-text-dim hover:text-white transition-colors"><X size={20} /></button>
               

@@ -63,7 +63,7 @@ async function startServer() {
   }
 
   // ৪. Server Listener (0.0.0.0 এ লিসেন করা Render এর জন্য জরুরি)
-  app.listen(PORT, "0.0.0.0", async () => {
+  app.listen(Number(PORT), "0.0.0.0", async () => {
     console.log(`🚀 Shopnexa server running on port ${PORT}`);
     
     // ৫. DB Sync & Seeding

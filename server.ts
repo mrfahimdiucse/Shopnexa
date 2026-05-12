@@ -6,12 +6,13 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 
-import authRoutes from "./src/routes/auth.js";
-import investmentRoutes from "./src/routes/investment.js";
-import transactionRoutes from "./src/routes/transaction.js";
-import adminRoutes from "./src/routes/admin.js";
-import contactRoutes from "./src/routes/contact.js";
-import { seedDemoData } from "./src/lib/seed.js";
+// Routes - প্রোডাকশনে অনেক সময় .js এক্সটেনশন ঝামেলা করে, তাই শুধু ফাইল পাথ দেওয়া ভালো
+import authRoutes from "./src/routes/auth";
+import investmentRoutes from "./src/routes/investment";
+import transactionRoutes from "./src/routes/transaction";
+import adminRoutes from "./src/routes/admin";
+import contactRoutes from "./src/routes/contact";
+import { seedDemoData } from "./src/lib/seed";
 
 dotenv.config();
 
@@ -22,7 +23,9 @@ async function startServer() {
   console.log("🚀 Initializing Shopnexa System...");
   
   const app = express();
-  const PORT = 3000;
+
+  // ১. পোর্ট ডিক্লেয়ারেশন (একবারই থাকবে)
+  const PORT = process.env.PORT || 10000;
 
   app.use(cors({
     origin: true,
@@ -31,7 +34,7 @@ async function startServer() {
   app.use(express.json());
   app.use(cookieParser());
 
-  // API Routes
+  // ২. API Routes
   app.use("/api/auth", authRoutes);
   app.use("/api/investments", investmentRoutes);
   app.use("/api/transactions", transactionRoutes);
@@ -42,14 +45,16 @@ async function startServer() {
     res.json({ status: "ok", message: "Shopnexa API is running" });
   });
 
-  // Vite middleware for development
+  // ৩. Frontend Handling (Vite vs Production)
   if (process.env.NODE_ENV !== "production") {
+    console.log("🛠️ Running in Development mode...");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
+    console.log("🌐 Running in Production mode...");
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
@@ -57,22 +62,23 @@ async function startServer() {
     });
   }
 
- // নিশ্চিত করুন PORT ভেরিয়েবলটি এভাবে আছে
-const PORT = process.env.PORT || 10000; 
-
-app.listen(PORT, "0.0.0.0", async () => {
-    // এখানে localhost এর বদলে port প্রিন্ট করা ভালো কারণ প্রোডাকশনে এটি localhost নয়
+  // ৪. Server Listener (0.0.0.0 এ লিসেন করা Render এর জন্য জরুরি)
+  app.listen(PORT, "0.0.0.0", async () => {
     console.log(`🚀 Shopnexa server running on port ${PORT}`);
     
-    // Sync DB and seed demo data AFTER listening
+    // ৫. DB Sync & Seeding
     try {
       console.log("🌱 Syncing database...");
       await seedDemoData();
       console.log("✅ Database synchronized and seeded.");
     } catch (err) {
       console.error("❌ Seeding failed:", err);
+      // Seeding ফেইল করলেও যেন সার্ভার চালু থাকে
     }
-});
+  });
 }
 
-startServer();
+// ৬. এরর হ্যান্ডেলিং (সার্ভার ক্র্যাশ রোধে)
+startServer().catch((err) => {
+  console.error("❌ Failed to start server:", err);
+});
